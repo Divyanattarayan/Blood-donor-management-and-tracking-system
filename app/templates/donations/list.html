@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Donations — BloodLink{% endblock %}
+{% block page_title %}Donation Tracking{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <h1><i class="bi bi-heart-pulse-fill me-2" style="color:var(--primary)"></i>Donations</h1>
+  {% if session.get('user', {}).get('role') == 'admin' %}
+  <a href="{{ url_for('donations.new_donation') }}" class="btn btn-primary" id="recordDonationBtn">
+    <i class="bi bi-plus-lg me-1"></i>Record Donation
+  </a>
+  {% endif %}
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 fade-in">
+  <div class="card-body">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Blood Group</label>
+        <select name="blood_group" class="form-select">
+          <option value="">All Groups</option>
+          {% for bg in blood_groups %}
+          <option value="{{ bg }}" {% if bg == blood_group_filter %}selected{% endif %}>{{ bg }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          <option value="">All</option>
+          {% for s in ['completed','deferred','pending'] %}
+          <option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>{{ s.title() }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">From</label>
+        <input type="date" name="date_from" class="form-control" value="{{ date_from }}" />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">To</label>
+        <input type="date" name="date_to" class="form-control" value="{{ date_to }}" />
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary me-2" id="filterDonationsBtn">
+          <i class="bi bi-funnel me-1"></i>Filter
+        </button>
+        <a href="{{ url_for('donations.list_donations') }}" class="btn btn-outline-secondary">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Donations Table -->
+<div class="card fade-in-delay-1">
+  <div class="card-header">
+    <i class="bi bi-table me-2"></i>{{ donations|length }} Record{{ 's' if donations|length != 1 }}
+  </div>
+  <div class="card-body p-0">
+    {% if donations %}
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Donor</th>
+            <th>Blood Group</th>
+            <th>Date</th>
+            <th>Units</th>
+            <th>Center</th>
+            <th>Hb</th>
+            <th>Status</th>
+            {% if session.get('user',{}).get('role') == 'admin' %}<th>Actions</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in donations %}
+          <tr>
+            <td style="color:var(--text-muted)">{{ loop.index }}</td>
+            <td>
+              <a href="{{ url_for('donors.donor_detail', donor_id=d.donor_id) }}"
+                 style="color:var(--text-primary); text-decoration:none; font-weight:600;">
+                {{ d.donors.full_name if d.donors else '—' }}
+              </a>
+            </td>
+            <td><span class="bg-badge">{{ d.blood_group }}</span></td>
+            <td>{{ d.donation_date }}</td>
+            <td>{{ d.units_donated }}</td>
+            <td style="color:var(--text-muted)">{{ d.donation_center or '—' }}</td>
+            <td style="color:var(--text-muted)">{{ d.hemoglobin_level or '—' }}</td>
+            <td><span class="badge-status status-{{ d.status }}">{{ d.status }}</span></td>
+            {% if session.get('user',{}).get('role') == 'admin' %}
+            <td>
+              <form method="POST" action="{{ url_for('donations.delete_donation', donation_id=d.id) }}" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"
+                        id="deleteDonation-{{ d.id }}"
+                        data-confirm="Delete this donation record? The inventory will NOT be auto-adjusted.">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-heart-pulse"></i>
+      <p>No donations found{% if blood_group_filter or status_filter %} for these filters{% endif %}.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

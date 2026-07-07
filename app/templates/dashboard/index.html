@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — BloodLink{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <h1><i class="bi bi-grid-fill me-2" style="color:var(--primary)"></i>Dashboard</h1>
+  <span style="color:var(--text-muted); font-size:0.85rem;">
+    <i class="bi bi-clock me-1"></i>Welcome back, <strong>{{ session['user']['full_name'] }}</strong>
+  </span>
+</div>
+
+<!-- Low Stock Alert -->
+{% if low_stock %}
+<div class="alert alert-danger fade-in mb-4">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+  <strong>Low Stock Alert:</strong>
+  {% for item in low_stock %}
+    <span class="bg-badge ms-1">{{ item.blood_group }}</span> {{ item.units_available|round(1) }} units
+  {% endfor %}
+  &nbsp;—
+  <a href="{{ url_for('admin.inventory') }}" style="color:inherit; font-weight:600;">Update Inventory</a>
+</div>
+{% endif %}
+
+<!-- ── Stat Cards ── -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3 fade-in">
+    <div class="stat-card">
+      <div class="stat-icon red"><i class="bi bi-people-fill"></i></div>
+      <div>
+        <div class="stat-value" data-target="{{ total_donors }}">{{ total_donors }}</div>
+        <div class="stat-label">Total Donors</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3 fade-in-delay-1">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-heart-pulse-fill"></i></div>
+      <div>
+        <div class="stat-value" data-target="{{ total_donations }}">{{ total_donations }}</div>
+        <div class="stat-label">Total Donations</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3 fade-in-delay-2">
+    <div class="stat-card">
+      <div class="stat-icon orange"><i class="bi bi-bell-fill"></i></div>
+      <div>
+        <div class="stat-value" data-target="{{ pending_requests }}">{{ pending_requests }}</div>
+        <div class="stat-label">Pending Requests</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3 fade-in-delay-3">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-droplet-fill"></i></div>
+      <div>
+        <div class="stat-value" data-target="{{ inventory|sum(attribute='units_available')|int }}">
+          {{ inventory|sum(attribute='units_available')|round(1) }}
+        </div>
+        <div class="stat-label">Total Units Available</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main Grid ── -->
+<div class="row g-3">
+  <!-- Blood Inventory -->
+  <div class="col-lg-5 fade-in">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-droplet me-2" style="color:var(--primary)"></i>Blood Inventory</span>
+        {% if session.get('user', {}).get('role') == 'admin' %}
+        <a href="{{ url_for('admin.inventory') }}" class="btn btn-sm btn-outline-secondary">Manage</a>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if inventory %}
+          {% for item in inventory %}
+          {% set pct = [[(item.units_available / 20 * 100)|int, 0]|max, 100]|min %}
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="bg-badge" style="min-width:44px">{{ item.blood_group }}</span>
+            <div class="inv-bar-bg flex-1">
+              <div class="inv-bar-fill {% if item.units_available < 5 %}low{% else %}good{% endif %}"
+                   data-width="{{ pct }}" style="width:0%"></div>
+            </div>
+            <span style="min-width:50px; text-align:right; font-size:0.8rem; color:var(--text-secondary)">
+              {{ item.units_available|round(1) }} u
+            </span>
+            {% if item.units_available < 5 %}
+            <span class="low-stock-alert"><i class="bi bi-exclamation-triangle-fill"></i> Low</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-droplet"></i>
+            <p>No inventory data yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Donations -->
+  <div class="col-lg-7 fade-in-delay-1">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-heart-pulse me-2" style="color:var(--primary)"></i>Recent Donations</span>
+        <a href="{{ url_for('donations.list_donations') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_donations %}
+        <div class="table-responsive">
+          <table class="table table-borderless mb-0">
+            <thead>
+              <tr>
+                <th>Donor</th>
+                <th>Blood Group</th>
+                <th>Date</th>
+                <th>Units</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in recent_donations %}
+              <tr>
+                <td>
+                  <strong>{{ d.donors.full_name if d.donors else '—' }}</strong>
+                </td>
+                <td><span class="bg-badge">{{ d.blood_group }}</span></td>
+                <td style="color:var(--text-muted)">{{ d.donation_date }}</td>
+                <td>{{ d.units_donated }}</td>
+                <td>
+                  <span class="badge-status status-{{ d.status }}">{{ d.status }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-heart-pulse"></i>
+            <p>No donations recorded yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Blood Requests -->
+  <div class="col-12 fade-in-delay-2">
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-bell me-2" style="color:var(--primary)"></i>Recent Blood Requests</span>
+        <a href="{{ url_for('requests.list_requests') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_requests %}
+        <div class="table-responsive">
+          <table class="table table-borderless mb-0">
+            <thead>
+              <tr>
+                <th>Requester</th>
+                <th>Blood Group</th>
+                <th>Units</th>
+                <th>Urgency</th>
+                <th>Hospital</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in recent_requests %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('requests.request_detail', request_id=r.id) }}"
+                     style="color:var(--text-primary); text-decoration:none; font-weight:600;">
+                    {{ r.requester_name }}
+                  </a>
+                </td>
+                <td><span class="bg-badge">{{ r.blood_group }}</span></td>
+                <td>{{ r.units_required }}</td>
+                <td>
+                  <span class="badge-urgency urgency-{{ r.urgency }}">{{ r.urgency }}</span>
+                </td>
+                <td style="color:var(--text-muted)">{{ r.hospital_name or '—' }}</td>
+                <td><span class="badge-status status-{{ r.status }}">{{ r.status }}</span></td>
+                <td style="color:var(--text-muted)">{{ r.created_at[:10] }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-bell"></i>
+            <p>No blood requests yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

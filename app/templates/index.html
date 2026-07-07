@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Welcome to BloodLink{% endblock %}
+{% block page_title %}Welcome to BloodLink{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Landing Page Specific Styles */
+  .hero-section {
+    padding: 80px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(230,57,70,0.1), rgba(29,53,87,0.1));
+    border-radius: 20px;
+    margin-bottom: 40px;
+    animation: fadeIn 1s ease-out;
+  }
+  .hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 20px;
+  }
+  .hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 40px;
+  }
+  .hero-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+  }
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    border-color: var(--primary-light);
+  }
+  .feature-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: var(--primary);
+  }
+  .feature-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+  }
+  .feature-text {
+    color: var(--text-muted);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="hero-section">
+    <h1 class="hero-title">Save Lives. Donate Blood.</h1>
+    <p class="hero-subtitle">BloodLink is a comprehensive, secure, and easy-to-use platform that connects generous blood donors with those in critical need.</p>
+    <div class="hero-buttons">
+      <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+        <i class="bi bi-person-plus-fill me-2"></i>Become a Donor
+      </a>
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-5 fade-in-delay-1">
+    <div class="col-md-4">
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-heart-pulse"></i></div>
+        <h3 class="feature-title">Track Donations</h3>
+        <p class="feature-text">Keep a complete history of your life-saving blood donations and monitor your health metrics like hemoglobin levels over time.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-bell"></i></div>
+        <h3 class="feature-title">Real-time Requests</h3>
+        <p class="feature-text">Hospitals and individuals can broadcast urgent blood requirements to eligible donors in the vicinity instantly.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+        <h3 class="feature-title">Safe & Secure</h3>
+        <p class="feature-text">Your medical information is strictly protected. Our automated eligibility checks ensure donor safety based on medical guidelines.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

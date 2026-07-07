@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Request Detail — BloodLink{% endblock %}
+{% block page_title %}Blood Request Detail{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <h1><i class="bi bi-bell-fill me-2" style="color:var(--primary)"></i>Blood Request</h1>
+  <a href="{{ url_for('requests.list_requests') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6 fade-in">
+    <div class="card">
+      <div class="card-header">
+        <span class="badge-urgency urgency-{{ blood_request.urgency }} me-2">{{ blood_request.urgency.title() }}</span>
+        Request Details
+      </div>
+      <div class="card-body">
+        <div class="detail-row">
+          <span class="detail-label">Requester</span>
+          <span class="detail-value">{{ blood_request.requester_name }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Phone</span>
+          <span class="detail-value">{{ blood_request.requester_phone }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">{{ blood_request.requester_email or '—' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Hospital</span>
+          <span class="detail-value">{{ blood_request.hospital_name or '—' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Blood Group</span>
+          <span class="detail-value"><span class="bg-badge">{{ blood_request.blood_group }}</span></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Units Required</span>
+          <span class="detail-value" style="font-size:1.2rem; font-weight:800; color:var(--primary-light)">
+            {{ blood_request.units_required }}
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Required By</span>
+          <span class="detail-value">{{ blood_request.required_by_date or '—' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Status</span>
+          <span class="detail-value">
+            <span class="badge-status status-{{ blood_request.status }}">{{ blood_request.status }}</span>
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Notes</span>
+          <span class="detail-value">{{ blood_request.notes or '—' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Submitted</span>
+          <span class="detail-value">{{ blood_request.created_at[:10] }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if session.get('user',{}).get('role') == 'admin' %}
+  <div class="col-lg-6 fade-in-delay-1">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-pencil-square me-2" style="color:var(--primary)"></i>Update Status
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('requests.update_status', request_id=blood_request.id) }}">
+          <div class="mb-3">
+            <label for="status" class="form-label">New Status</label>
+            <select id="status" name="status" class="form-select">
+              {% for s in ['pending','fulfilled','cancelled'] %}
+              <option value="{{ s }}" {% if s == blood_request.status %}selected{% endif %}>{{ s.title() }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-4">
+            <label for="fulfilled_by" class="form-label">Fulfilled By (Donor ID, optional)</label>
+            <input type="text" id="fulfilled_by" name="fulfilled_by" class="form-control"
+                   placeholder="Paste donor UUID if fulfilled" />
+          </div>
+          <button type="submit" class="btn btn-primary w-100" id="updateStatusBtn">
+            <i class="bi bi-check-lg me-1"></i>Update Status
+          </button>
+        </form>
+
+        <hr style="border-color:var(--border); margin:20px 0" />
+
+        <form method="POST" action="{{ url_for('requests.delete_request', request_id=blood_request.id) }}">
+          <button type="submit" class="btn btn-outline-danger w-100" id="deleteRequestBtn"
+                  data-confirm="Delete this blood request permanently?">
+            <i class="bi bi-trash me-1"></i>Delete Request
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

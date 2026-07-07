@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}Reports — BloodLink{% endblock %}
+{% block page_title %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <h1><i class="bi bi-bar-chart-fill me-2" style="color:var(--primary)"></i>Reports & Analytics</h1>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('reports.export_donors') }}" class="btn btn-outline-secondary btn-sm" id="exportDonorsBtn">
+      <i class="bi bi-download me-1"></i>Export Donors CSV
+    </a>
+    <a href="{{ url_for('reports.export_donations') }}" class="btn btn-outline-secondary btn-sm" id="exportDonationsBtn">
+      <i class="bi bi-download me-1"></i>Export Donations CSV
+    </a>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3 mb-4">
+  <!-- Monthly Donations Line Chart -->
+  <div class="col-lg-7 fade-in">
+    <div class="card h-100">
+      <div class="card-header">
+        <i class="bi bi-graph-up me-2" style="color:var(--primary)"></i>Monthly Donation Trend (Units)
+      </div>
+      <div class="card-body">
+        <div class="chart-container" style="position:relative; height:260px">
+          <canvas id="monthlyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blood Group Pie Chart -->
+  <div class="col-lg-5 fade-in-delay-1">
+    <div class="card h-100">
+      <div class="card-header">
+        <i class="bi bi-pie-chart me-2" style="color:var(--primary)"></i>Donor Blood Group Distribution
+      </div>
+      <div class="card-body">
+        <div class="chart-container" style="position:relative; height:260px">
+          <canvas id="bgChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Inventory + Top Donors -->
+<div class="row g-3">
+  <!-- Current Inventory -->
+  <div class="col-lg-5 fade-in">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-droplet-fill me-2" style="color:var(--primary)"></i>Current Blood Inventory
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>Blood Group</th>
+                <th>Units Available</th>
+                <th>Stock Level</th>
+                <th>Last Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in inventory %}
+              {% set pct = [[(item.units_available / 20 * 100)|int, 0]|max, 100]|min %}
+              <tr>
+                <td><span class="bg-badge">{{ item.blood_group }}</span></td>
+                <td>
+                  <strong>{{ item.units_available|round(1) }}</strong>
+                  {% if item.units_available < 5 %}
+                  <span class="low-stock-alert ms-1"><i class="bi bi-exclamation-triangle-fill"></i> Low</span>
+                  {% endif %}
+                </td>
+                <td style="min-width:100px">
+                  <div class="inv-bar-bg">
+                    <div class="inv-bar-fill {% if item.units_available < 5 %}low{% else %}good{% endif %}"
+                         data-width="{{ pct }}" style="width:0%"></div>
+                  </div>
+                </td>
+                <td style="color:var(--text-muted); font-size:0.8rem">{{ item.last_updated[:10] }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Donors -->
+  <div class="col-lg-7 fade-in-delay-1">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-trophy-fill me-2" style="color:var(--warning)"></i>Top Donors by Total Donations
+      </div>
+      <div class="card-body p-0">
+        {% if top_donors %}
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Donor</th>
+                <th>Blood Group</th>
+                <th>City</th>
+                <th>Total Donations</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in top_donors %}
+              <tr>
+                <td>
+                  {% if loop.index == 1 %} 🥇
+                  {% elif loop.index == 2 %} 🥈
+                  {% elif loop.index == 3 %} 🥉
+                  {% else %} {{ loop.index }}
+                  {% endif %}
+                </td>
+                <td><strong>{{ d.full_name }}</strong></td>
+                <td><span class="bg-badge">{{ d.blood_group }}</span></td>
+                <td style="color:var(--text-muted)">{{ d.city or '—' }}</td>
+                <td>
+                  <span style="font-weight:800; font-size:1.1rem; color:var(--primary-light)">
+                    {{ d.total_donations }}
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <i class="bi bi-trophy"></i>
+          <p>No donation data yet.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Chart.js shared defaults
+Chart.defaults.color = '#8b949e';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 12;
+
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      labels: { color: '#8b949e', padding: 16 }
+    }
+  }
+};
+
+// Monthly Donations Chart
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+new Chart(monthlyCtx, {
+  type: 'line',
+  data: {
+    labels: {{ monthly_labels | tojson }},
+    datasets: [{
+      label: 'Units Donated',
+      data: {{ monthly_data | tojson }},
+      borderColor: '#e63946',
+      backgroundColor: 'rgba(230,57,70,0.1)',
+      borderWidth: 2.5,
+      pointBackgroundColor: '#e63946',
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      fill: true,
+      tension: 0.4,
+    }]
+  },
+  options: {
+    ...chartDefaults,
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#6e7681' }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#6e7681' },
+        beginAtZero: true
+      }
+    }
+  }
+});
+
+// Blood Group Pie Chart
+const bgCtx = document.getElementById('bgChart').getContext('2d');
+new Chart(bgCtx, {
+  type: 'doughnut',
+  data: {
+    labels: {{ bg_labels | tojson }},
+    datasets: [{
+      data: {{ bg_data | tojson }},
+      backgroundColor: [
+        '#e63946','#c1121f','#457b9d','#1d3557',
+        '#2d9c6e','#f4a261','#a8dadc','#e9c46a'
+      ],
+      borderColor: '#161b22',
+      borderWidth: 3,
+      hoverOffset: 6,
+    }]
+  },
+  options: {
+    ...chartDefaults,
+    cutout: '65%',
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: { color: '#8b949e', padding: 12, boxWidth: 14 }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

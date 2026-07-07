@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Blood Requests — BloodLink{% endblock %}
+{% block page_title %}Blood Requests{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <h1><i class="bi bi-bell-fill me-2" style="color:var(--primary)"></i>Blood Requests</h1>
+  <a href="{{ url_for('requests.new_request') }}" class="btn btn-primary" id="newRequestBtn">
+    <i class="bi bi-plus-lg me-1"></i>New Request
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 fade-in">
+  <div class="card-body">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Blood Group</label>
+        <select name="blood_group" class="form-select">
+          <option value="">All</option>
+          {% for bg in blood_groups %}
+          <option value="{{ bg }}" {% if bg == bg_filter %}selected{% endif %}>{{ bg }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Urgency</label>
+        <select name="urgency" class="form-select">
+          <option value="">All</option>
+          {% for u in ['critical','urgent','normal'] %}
+          <option value="{{ u }}" {% if u == urgency_filter %}selected{% endif %}>{{ u.title() }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          <option value="">All</option>
+          {% for s in ['pending','fulfilled','cancelled'] %}
+          <option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>{{ s.title() }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary me-2" id="filterRequestsBtn">
+          <i class="bi bi-funnel me-1"></i>Filter
+        </button>
+        <a href="{{ url_for('requests.list_requests') }}" class="btn btn-outline-secondary">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Requests Table -->
+<div class="card fade-in-delay-1">
+  <div class="card-header">
+    <i class="bi bi-table me-2"></i>{{ blood_requests|length }} Request{{ 's' if blood_requests|length != 1 }}
+  </div>
+  <div class="card-body p-0">
+    {% if blood_requests %}
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Requester</th>
+            <th>Blood Group</th>
+            <th>Units</th>
+            <th>Urgency</th>
+            <th>Hospital</th>
+            <th>Required By</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in blood_requests %}
+          <tr>
+            <td style="color:var(--text-muted)">{{ loop.index }}</td>
+            <td>
+              <div style="font-weight:600">{{ r.requester_name }}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted)">{{ r.requester_phone }}</div>
+            </td>
+            <td><span class="bg-badge">{{ r.blood_group }}</span></td>
+            <td><strong>{{ r.units_required }}</strong></td>
+            <td><span class="badge-urgency urgency-{{ r.urgency }}">{{ r.urgency }}</span></td>
+            <td style="color:var(--text-muted)">{{ r.hospital_name or '—' }}</td>
+            <td style="color:var(--text-muted)">{{ r.required_by_date or '—' }}</td>
+            <td><span class="badge-status status-{{ r.status }}">{{ r.status }}</span></td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('requests.request_detail', request_id=r.id) }}"
+                   class="btn btn-sm btn-outline-secondary" title="View" id="viewReq-{{ r.id }}">
+                  <i class="bi bi-eye"></i>
+                </a>
+                {% if session.get('user',{}).get('role') == 'admin' %}
+                <form method="POST" action="{{ url_for('requests.delete_request', request_id=r.id) }}" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"
+                          id="deleteReq-{{ r.id }}"
+                          data-confirm="Delete this blood request?">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-bell"></i>
+      <p>No blood requests found.</p>
+      <a href="{{ url_for('requests.new_request') }}" class="btn btn-primary btn-sm">Submit First Request</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

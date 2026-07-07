@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Donors — BloodLink{% endblock %}
+{% block page_title %}Donor Management{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <h1><i class="bi bi-people-fill me-2" style="color:var(--primary)"></i>Donors</h1>
+  {% if session.get('user', {}).get('role') == 'admin' %}
+  <a href="{{ url_for('donors.new_donor') }}" class="btn btn-primary" id="addDonorBtn">
+    <i class="bi bi-plus-lg me-1"></i>Add Donor
+  </a>
+  {% endif %}
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="card mb-4 fade-in">
+  <div class="card-body">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label">Search</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" name="search" class="form-control"
+                 placeholder="Name, phone, email…" value="{{ search }}" />
+        </div>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Blood Group</label>
+        <select name="blood_group" class="form-select">
+          <option value="">All Groups</option>
+          {% for bg in blood_groups %}
+          <option value="{{ bg }}" {% if bg == selected_blood_group %}selected{% endif %}>{{ bg }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">City</label>
+        <input type="text" name="city" class="form-control"
+               placeholder="Filter by city" value="{{ selected_city }}" />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Eligibility</label>
+        <select name="eligible" class="form-select">
+          <option value="">All</option>
+          <option value="true"  {% if selected_eligible == 'true'  %}selected{% endif %}>Eligible</option>
+          <option value="false" {% if selected_eligible == 'false' %}selected{% endif %}>Not Eligible</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100" id="searchDonorsBtn">
+          <i class="bi bi-funnel me-1"></i>Filter
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Donors Table -->
+<div class="card fade-in-delay-1">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-table me-2"></i>{{ donors|length }} Donor{{ 's' if donors|length != 1 }}</span>
+  </div>
+  <div class="card-body p-0">
+    {% if donors %}
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Blood Group</th>
+            <th>Phone</th>
+            <th>City</th>
+            <th>Last Donation</th>
+            <th>Donations</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for donor in donors %}
+          <tr>
+            <td style="color:var(--text-muted)">{{ loop.index }}</td>
+            <td>
+              <a href="{{ url_for('donors.donor_detail', donor_id=donor.id) }}"
+                 style="color:var(--text-primary); text-decoration:none; font-weight:600;">
+                {{ donor.full_name }}
+              </a>
+            </td>
+            <td><span class="bg-badge">{{ donor.blood_group }}</span></td>
+            <td style="color:var(--text-muted)">{{ donor.phone }}</td>
+            <td style="color:var(--text-muted)">{{ donor.city or '—' }}</td>
+            <td style="color:var(--text-muted)">{{ donor.last_donation_date or 'Never' }}</td>
+            <td>
+              <span style="font-weight:700; color:var(--primary-light)">{{ donor.total_donations }}</span>
+            </td>
+            <td>
+              {% if donor.is_eligible %}
+              <span class="badge-status status-completed">Eligible</span>
+              {% else %}
+              <span class="badge-status status-deferred">Not Eligible</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('donors.donor_detail', donor_id=donor.id) }}"
+                   class="btn btn-sm btn-outline-secondary" title="View" id="viewDonor-{{ donor.id }}">
+                  <i class="bi bi-eye"></i>
+                </a>
+                {% if session.get('user', {}).get('role') == 'admin' %}
+                <a href="{{ url_for('donors.edit_donor', donor_id=donor.id) }}"
+                   class="btn btn-sm btn-outline-secondary" title="Edit" id="editDonor-{{ donor.id }}">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="POST" action="{{ url_for('donors.delete_donor', donor_id=donor.id) }}" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"
+                          id="deleteDonor-{{ donor.id }}"
+                          data-confirm="Delete {{ donor.full_name }}? This cannot be undone.">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-people"></i>
+      <p>No donors found{% if search or selected_blood_group %} matching your filters{% endif %}.</p>
+      {% if session.get('user', {}).get('role') == 'admin' %}
+      <a href="{{ url_for('donors.new_donor') }}" class="btn btn-primary btn-sm">Add First Donor</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

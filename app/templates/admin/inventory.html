@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Blood Inventory — BloodLink{% endblock %}
+{% block page_title %}Blood Inventory{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <h1><i class="bi bi-droplet-fill me-2" style="color:var(--primary)"></i>Blood Inventory</h1>
+  <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Admin Panel
+  </a>
+</div>
+
+<div class="row g-3">
+  <!-- Inventory Table -->
+  <div class="col-lg-8 fade-in">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-table me-2"></i>Current Stock Levels
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>Blood Group</th>
+                <th>Units Available</th>
+                <th>Stock Level</th>
+                <th>Alert</th>
+                <th>Last Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in inventory %}
+              {% set pct = [[(item.units_available / 20 * 100)|int, 0]|max, 100]|min %}
+              <tr>
+                <td>
+                  <span class="bg-badge" style="font-size:0.9rem; width:52px; height:32px">
+                    {{ item.blood_group }}
+                  </span>
+                </td>
+                <td>
+                  <span style="font-size:1.3rem; font-weight:800;
+                               color:{% if item.units_available < 5 %}var(--primary){% else %}var(--text-primary){% endif %}">
+                    {{ item.units_available|round(1) }}
+                  </span>
+                  <span style="color:var(--text-muted); font-size:0.8rem"> units</span>
+                </td>
+                <td style="min-width:120px">
+                  <div class="inv-bar-bg">
+                    <div class="inv-bar-fill {% if item.units_available < 5 %}low{% else %}good{% endif %}"
+                         data-width="{{ pct }}" style="width:0%"></div>
+                  </div>
+                </td>
+                <td>
+                  {% if item.units_available == 0 %}
+                    <span class="badge-urgency urgency-critical badge-status">Critical</span>
+                  {% elif item.units_available < 5 %}
+                    <span class="badge-urgency urgency-urgent badge-status">Low</span>
+                  {% else %}
+                    <span class="badge-status status-completed">Good</span>
+                  {% endif %}
+                </td>
+                <td style="color:var(--text-muted); font-size:0.8rem">{{ item.last_updated[:10] }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Adjust Stock Form -->
+  <div class="col-lg-4 fade-in-delay-1">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-pencil-square me-2" style="color:var(--primary)"></i>Adjust Stock
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.update_inventory') }}">
+          <div class="mb-3">
+            <label for="blood_group" class="form-label">Blood Group</label>
+            <select id="blood_group" name="blood_group" class="form-select" required>
+              <option value="">Select Group</option>
+              {% for item in inventory %}
+              <option value="{{ item.blood_group }}">{{ item.blood_group }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-4">
+            <label for="units_available" class="form-label">Set Units Available</label>
+            <input type="number" id="units_available" name="units_available" class="form-control"
+                   min="0" max="9999" step="0.5" placeholder="e.g. 15.0" required />
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px">
+              This will <strong>override</strong> the current value.
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100" id="updateInventoryBtn">
+            <i class="bi bi-check-lg me-1"></i>Update Stock
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

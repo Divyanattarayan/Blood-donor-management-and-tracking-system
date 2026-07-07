@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Submit Blood Request — BloodLink{% endblock %}
+{% block page_title %}Submit Blood Request{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <h1><i class="bi bi-bell-fill me-2" style="color:var(--primary)"></i>Submit Blood Request</h1>
+  <a href="{{ url_for('requests.list_requests') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+</div>
+
+<div class="card fade-in" style="max-width:760px">
+  <div class="card-body p-4">
+    <form method="POST" action="{{ url_for('requests.new_request') }}" novalidate>
+      <div class="row g-3">
+        <!-- Requester Name -->
+        <div class="col-md-6">
+          <label for="requester_name" class="form-label">Patient / Requester Name <span class="text-danger">*</span></label>
+          <input type="text" id="requester_name" name="requester_name" class="form-control"
+                 value="{{ req.get('requester_name','') }}" required placeholder="Full name" />
+        </div>
+
+        <!-- Phone -->
+        <div class="col-md-6">
+          <label for="requester_phone" class="form-label">Phone <span class="text-danger">*</span></label>
+          <input type="tel" id="requester_phone" name="requester_phone" class="form-control"
+                 value="{{ req.get('requester_phone','') }}" required placeholder="+91 98765 43210" />
+        </div>
+
+        <!-- Email -->
+        <div class="col-md-6">
+          <label for="requester_email" class="form-label">Email</label>
+          <input type="email" id="requester_email" name="requester_email" class="form-control"
+                 value="{{ req.get('requester_email','') }}" placeholder="contact@hospital.com" />
+        </div>
+
+        <!-- Hospital -->
+        <div class="col-md-6">
+          <label for="hospital_name" class="form-label">Hospital / Clinic Name</label>
+          <input type="text" id="hospital_name" name="hospital_name" class="form-control"
+                 value="{{ req.get('hospital_name','') }}" placeholder="City General Hospital" />
+        </div>
+
+        <!-- Blood Group -->
+        <div class="col-md-4">
+          <label for="blood_group" class="form-label">Blood Group Required <span class="text-danger">*</span></label>
+          <select id="blood_group" name="blood_group" class="form-select" required>
+            <option value="">Select</option>
+            {% for bg in blood_groups %}
+            <option value="{{ bg }}" {% if req.get('blood_group') == bg %}selected{% endif %}>{{ bg }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Units -->
+        <div class="col-md-4">
+          <label for="units_required" class="form-label">Units Required <span class="text-danger">*</span></label>
+          <input type="number" id="units_required" name="units_required" class="form-control"
+                 value="{{ req.get('units_required', 1) }}" required min="1" max="20" />
+        </div>
+
+        <!-- Urgency -->
+        <div class="col-md-4">
+          <label for="urgency" class="form-label">Urgency Level</label>
+          <select id="urgency" name="urgency" class="form-select">
+            <option value="normal"   {% if req.get('urgency','normal') == 'normal'   %}selected{% endif %}>🟢 Normal</option>
+            <option value="urgent"   {% if req.get('urgency') == 'urgent'   %}selected{% endif %}>🟡 Urgent</option>
+            <option value="critical" {% if req.get('urgency') == 'critical' %}selected{% endif %}>🔴 Critical</option>
+          </select>
+        </div>
+
+        <!-- Required By Date -->
+        <div class="col-md-6">
+          <label for="required_by_date" class="form-label">Required By Date</label>
+          <input type="date" id="required_by_date" name="required_by_date" class="form-control"
+                 value="{{ req.get('required_by_date','') }}" />
+        </div>
+
+        <!-- Notes -->
+        <div class="col-12">
+          <label for="notes" class="form-label">Additional Notes</label>
+          <textarea id="notes" name="notes" class="form-control" rows="3"
+                    placeholder="Patient condition, special requirements…">{{ req.get('notes','') }}</textarea>
+        </div>
+      </div>
+
+      <hr style="border-color:var(--border); margin:24px 0" />
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary" id="submitRequestBtn">
+          <i class="bi bi-send me-1"></i>Submit Request
+        </button>
+        <a href="{{ url_for('requests.list_requests') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
