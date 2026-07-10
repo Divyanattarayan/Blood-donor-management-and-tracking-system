@@ -102,55 +102,24 @@ Open [http://localhost:5000](http://localhost:5000) in your browser.
 ├── requirements.txt
 ├── run.py                   # Entry point
 └── .env                     # Environment variables (not committed)
----
-# ✨ Features
-
-## 🔐 Authentication
-- Secure Login & Registration
-- JWT-based Authentication
-- Role-Based Access Control (Admin & Donor)
-
-## 👥 Donor Management
-- Register New Donors
-- View Donor Details
-- Update Donor Information
-- Delete Donor Records
-- Search by Blood Group
-- Eligibility Tracking (56-Day Rule)
-
-## 💉 Donation Tracking
-- Record Blood Donations
-- Update Donation History
-- Automatic Donor Statistics
-- Blood Inventory Updates
-
-## 🩸 Blood Requests
-- Submit Blood Requests
-- Track Request Status
-- Priority & Urgency Management
-
-## 📊 Reports & Analytics
-- Monthly Donation Trends
-- Blood Group Distribution Charts
-- CSV Report Export
-- Dashboard Statistics
-
-## 🛡️ Admin Panel
-- Manage Users
-- Assign Roles
-- Manage Blood Inventory
-- System Administration
-
-## 🎨 User Interface
-- Responsive Design
-- Bootstrap 5 UI
-- Dark Theme
-- Glassmorphism Sidebar
-- Mobile Friendly
+```
 
 ---
+
 ## 🌐 Live Demo
 
-**🚀 Live Website**
+🚀 **Live Website**
 
 👉 https://blood-donor-management-and-tracking.onrender.com/
+
+---
+
+## Features
+
+* 🔐 **Auth** — Supabase JWT-based login/register with role-based access
+* 👥 **Donor Management** — Add, edit, delete, search donors; eligibility tracking (56-day rule)
+* 💉 **Donation Tracking** — Record donations; auto-updates donor stats and blood inventory
+* 🔔 **Blood Requests** — Submit requests with urgency levels; admin status management
+* 📊 **Reports** — Chart.js analytics (monthly trend, blood group pie), CSV export
+* 🛡️ **Admin Panel** — User role management, blood inventory adjustments
+* 🌙 **Dark Theme** — Crimson-accented dark UI with glassmorphism sidebar
