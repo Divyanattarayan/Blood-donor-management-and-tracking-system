@@ -53,11 +53,6 @@
 
     {% if session.get('user', {}).get('role') == 'admin' %}
     <div class="nav-section-label">Admin</div>
-    <a href="{{ url_for('reports.index') }}"
-       class="nav-link {% if request.endpoint and request.endpoint.startswith('reports') %}active{% endif %}">
-      <i class="bi bi-bar-chart-fill"></i>
-      <span>Reports</span>
-    </a>
     <a href="{{ url_for('admin.index') }}"
        class="nav-link {% if request.endpoint and request.endpoint.startswith('admin') %}active{% endif %}">
       <i class="bi bi-shield-lock-fill"></i>
@@ -92,9 +87,29 @@
   <div class="topbar-title">{% block page_title %}{% endblock %}</div>
   <div class="topbar-actions">
     {% if session.get('user', {}).get('role') == 'admin' %}
-    <a href="{{ url_for('donors.new_donor') }}" class="btn btn-primary btn-sm" id="topbar-add-donor">
-      <i class="bi bi-plus-lg me-1"></i>Add Donor
-    </a>
+    <div class="dropdown">
+      <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="quickActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-lightning-charge-fill me-1"></i>Quick Actions
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="quickActionsDropdown" style="background-color: var(--bg-card); border: 1px solid var(--border); box-shadow: var(--shadow-md);">
+        <li>
+          <a class="dropdown-item py-2" href="{{ url_for('donations.new_donation') }}">
+            <i class="bi bi-heart-pulse-fill me-2 text-danger"></i>Record Donation
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item py-2" href="{{ url_for('requests.new_request') }}">
+            <i class="bi bi-bell-fill me-2 text-warning"></i>New Request
+          </a>
+        </li>
+        <li><hr class="dropdown-divider" style="border-color: var(--border);"></li>
+        <li>
+          <a class="dropdown-item py-2" href="{{ url_for('donors.new_donor') }}">
+            <i class="bi bi-person-plus-fill me-2 text-info"></i>Add Donor
+          </a>
+        </li>
+      </ul>
+    </div>
     {% endif %}
   </div>
 </div>

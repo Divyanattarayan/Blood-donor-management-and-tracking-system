@@ -407,7 +407,7 @@ body {
   background: var(--bg-hover) !important;
 }
 
-.table-responsive { border-radius: var(--radius); overflow: hidden; }
+.table-responsive { border-radius: var(--radius); overflow-x: auto; }
 
 /* ══════════════════════════════════════════════════
    FORMS
