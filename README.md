@@ -100,12 +100,11 @@ Open [http://localhost:5000](http://localhost:5000) in your browser.
 ├── run.py                   # Entry point
 └── .env                     # Environment variables (not committed)
 ```
-🌐 Live Demo
+## 🌐 Live Demo
 
-🚀 Live Website
+**🚀 Live Website**
 
 👉 https://blood-donor-management-and-tracking.onrender.com/
-
 ---
 
 ## Features
